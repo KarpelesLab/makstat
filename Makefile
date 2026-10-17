@@ -17,8 +17,6 @@ gen: $(APP).xcodeproj
 
 build: gen
 	xcodebuild -project $(APP).xcodeproj -scheme $(SCHEME) -configuration $(CONFIG) \
-		-derivedDataPath $(DERIVED) build | xcbeautify 2>/dev/null || \
-	xcodebuild -project $(APP).xcodeproj -scheme $(SCHEME) -configuration $(CONFIG) \
 		-derivedDataPath $(DERIVED) build -quiet
 
 run: build

@@ -110,7 +110,8 @@ struct MenuView: View {
                 .help("Hidden processes belong to other users (including root) and cannot be inspected without elevated privileges.")
             Spacer()
             Button("Activity Monitor") {
-                NSWorkspace.shared.launchApplication("Activity Monitor")
+                let url = URL(fileURLWithPath: "/System/Applications/Utilities/Activity Monitor.app")
+                NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
             }.font(.caption).buttonStyle(.link)
             Button("Rules…") { openSettingsWindow() }.font(.caption).buttonStyle(.link)
             Button("Quit") { NSApp.terminate(nil) }.font(.caption).buttonStyle(.link)

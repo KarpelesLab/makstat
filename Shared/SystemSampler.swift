@@ -3,7 +3,8 @@ import IOKit
 
 /// Samples whole-system counters. Rates (CPU %, disk and network throughput) are
 /// derived from the delta against the previous call, so the first sample reports zero.
-final class SystemSampler {
+/// Not thread-safe; the app drives it from one serial queue.
+final class SystemSampler: @unchecked Sendable {
     private var prevCPU: [[UInt32]]?          // per core: user, system, idle, nice ticks
     private var prevDisk: (read: UInt64, write: UInt64, at: Date)?
     private var prevNet: (inBytes: UInt64, outBytes: UInt64, at: Date)?

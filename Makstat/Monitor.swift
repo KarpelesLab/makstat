@@ -81,6 +81,8 @@ final class Monitor: ObservableObject {
     }
 
     private func pushToWidget(_ snap: Snapshot) {
+        // The first sample has no rates yet (CPU, disk and network all read zero).
+        guard cpuHistory.count >= 2 else { return }
         let interval = max(30, UserDefaults.standard.double(forKey: PrefKey.widgetRefresh))
         guard Date().timeIntervalSince(lastWidgetPush) >= interval else { return }
         lastWidgetPush = Date()

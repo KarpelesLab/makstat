@@ -3,7 +3,8 @@ import Darwin
 
 /// Enumerates processes and groups them by executable name.
 /// CPU and disk rates are computed against the previous sample.
-final class ProcessSampler {
+/// Not thread-safe; the app drives it from one serial queue.
+final class ProcessSampler: @unchecked Sendable {
     private struct Previous {
         var cpuTime: UInt64      // nanoseconds
         var diskRead: UInt64
