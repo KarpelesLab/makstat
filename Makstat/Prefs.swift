@@ -21,6 +21,7 @@ enum PrefKey {
     static let widgetRefresh = "widgetRefresh"            // seconds
     static let protectedNames = "protectedNames"
     static let showPerCore = "showPerCore"
+    static let autoUpdate = "autoUpdate"
 }
 
 enum Prefs {
@@ -32,6 +33,7 @@ enum Prefs {
         PrefKey.widgetRefresh: 300.0,
         PrefKey.protectedNames: "Makstat, Terminal, iTerm2, WindowServer, loginwindow, Finder, Dock, SystemUIServer, launchd, kernel_task",
         PrefKey.showPerCore: true,
+        PrefKey.autoUpdate: true,
     ]
 
     static func register() {

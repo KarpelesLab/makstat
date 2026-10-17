@@ -51,12 +51,40 @@ xcodebuild -project Makstat.xcodeproj -scheme Makstat -configuration Release \
 With an ad-hoc signature macOS may ask for permission the first time the app
 and the widget share data through their app group container.
 
+## Releases and updates
+
+Pushing a tag such as `v0.2.0` (`make tag VERSION=0.2.0`) runs the Release
+workflow, which builds a universal (arm64 + x86_64) binary with the version
+taken from the tag and attaches `Makstat-<version>-universal.zip` to the
+GitHub release.
+
+The app checks the latest GitHub release every six hours (and on launch),
+shows an "Update to x.y.z" link in the popover and a notification, and on
+confirmation downloads the zip, verifies the code signature, swaps the bundle
+in place and relaunches. `Makstat --update` does the same without asking.
+
+Signature policy: if the running copy is signed by a team, the update must be
+signed by the same team, otherwise it is refused. Set these repository secrets
+to have CI produce Developer ID builds that satisfy that check (and are
+notarized):
+
+| Secret | Content |
+|---|---|
+| `MACOS_CERTIFICATE_P12` | base64 of the "Developer ID Application" certificate exported as .p12 |
+| `MACOS_CERTIFICATE_PASSWORD` | password of that .p12 |
+| `APPLE_TEAM_ID` | team ID of the certificate (defaults to the one in `project.yml`) |
+| `APPLE_ID`, `APPLE_APP_PASSWORD` | Apple ID and app-specific password for `notarytool` |
+
+Without the secrets, releases are ad-hoc signed; those updates install only
+on copies that are themselves ad-hoc signed.
+
 ## Debug flags
 
 - `Makstat --window` shows the popover content in a regular window and prints
   its window number.
 - `Makstat --screenshot <dir>` renders the popover and the settings tabs to PNG
   files and exits. CI uses this to attach screenshots to every build.
+- `Makstat --update` installs the latest GitHub release if it is newer, then quits.
 
 ## Layout
 

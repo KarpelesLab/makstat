@@ -30,6 +30,8 @@ struct GeneralSettings: View {
     @AppStorage(PrefKey.protectedNames) private var protectedNames = ""
     @AppStorage(PrefKey.showPerCore) private var showPerCore = true
     @State private var launchAtLogin = Prefs.launchAtLogin
+    @AppStorage(PrefKey.autoUpdate) private var autoUpdate = true
+    @ObservedObject private var updater = Updater.shared
 
     var body: some View {
         Form {
@@ -64,11 +66,44 @@ struct GeneralSettings: View {
             }
 
             Divider()
+            LabeledContent("Updates") {
+                HStack {
+                    Text("Makstat \(updater.currentVersion) (build \(updater.currentBuild))")
+                    Spacer()
+                    switch updater.state {
+                    case .available:
+                        Button("Install \(updater.available?.version ?? "")") { updater.promptAndInstall() }
+                    case .checking:
+                        ProgressView().controlSize(.small)
+                    case .downloading, .installing:
+                        ProgressView().controlSize(.small)
+                        Text("Installing…").foregroundStyle(.secondary)
+                    default:
+                        Button("Check Now") { Task { await updater.check() } }
+                    }
+                }
+            }
+            Toggle("Check for updates automatically", isOn: $autoUpdate)
+            Text(updateStatus).font(.caption).foregroundStyle(.secondary)
+
+            Divider()
             TextField("Protected processes", text: $protectedNames)
             Text("Comma-separated names that rules will never terminate or kill.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .padding(20)
+    }
+
+    private var updateStatus: String {
+        switch updater.state {
+        case .idle: return "Releases are fetched from github.com/\(Updater.repository)."
+        case .checking: return "Checking…"
+        case .upToDate: return "Up to date" + (updater.lastCheck.map { " (checked \(Format.shortTime.string(from: $0)))" } ?? "") + "."
+        case .available: return "Version \(updater.available?.version ?? "") is available."
+        case .downloading(let p): return "Downloading… \(Int(p * 100))%"
+        case .installing: return "Installing and relaunching…"
+        case .failed(let e): return "Update check failed: \(e)"
+        }
     }
 }
 

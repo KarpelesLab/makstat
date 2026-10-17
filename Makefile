@@ -6,7 +6,7 @@ DERIVED  = $(BUILD)/DerivedData
 PRODUCT  = $(DERIVED)/Build/Products/$(CONFIG)/$(APP).app
 INSTALL_DIR ?= /Applications
 
-.PHONY: all gen build run install clean open-widgets
+.PHONY: all gen build run install clean tag
 
 all: build
 
@@ -31,3 +31,9 @@ install: build
 
 clean:
 	rm -rf $(BUILD) $(APP).xcodeproj
+
+# Tag a release; the Release workflow builds a universal binary and attaches it.
+tag:
+	@test -n "$(VERSION)" || (echo "usage: make tag VERSION=x.y.z"; exit 1)
+	git tag -a "v$(VERSION)" -m "Makstat $(VERSION)"
+	git push origin "v$(VERSION)"

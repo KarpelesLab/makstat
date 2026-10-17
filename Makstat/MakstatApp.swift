@@ -47,6 +47,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             }
             // `Makstat --window` shows the popover content in a regular window (handy for screenshots).
             if CommandLine.arguments.contains("--window") { showWindow() }
+            // `Makstat --update` checks GitHub and installs a newer release without asking, then quits.
+            if CommandLine.arguments.contains("--update") {
+                Task { @MainActor in
+                    if await Updater.shared.check() != nil {
+                        await Updater.shared.install()
+                    }
+                    print("update: \(Updater.shared.state)")
+                    exit(Updater.shared.state == .upToDate ? 0 : 1)
+                }
+            } else if !CommandLine.arguments.contains("--screenshot") {
+                Updater.shared.startAutomaticChecks()
+            }
             // `Makstat --screenshot <dir>` renders every screen to PNG files and exits.
             if let i = CommandLine.arguments.firstIndex(of: "--screenshot"), i + 1 < CommandLine.arguments.count {
                 ScreenshotMode.run(directory: CommandLine.arguments[i + 1])

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuView: View {
     @EnvironmentObject private var monitor: Monitor
+    @ObservedObject private var updater = Updater.shared
     @Environment(\.openSettings) private var openSettings
     @AppStorage(PrefKey.showPerCore) private var showPerCore = true
 
@@ -27,6 +28,10 @@ struct MenuView: View {
     private func header(_ s: Snapshot) -> some View {
         HStack {
             Text("Makstat").font(.headline)
+            if let r = updater.available {
+                Button("Update to \(r.version)") { updater.promptAndInstall() }
+                    .buttonStyle(.link).font(.caption)
+            }
             Spacer()
             Text("up \(Format.duration(s.uptime))").font(.caption).foregroundStyle(.secondary)
             Button { openSettingsWindow() } label: { Image(systemName: "gearshape") }
