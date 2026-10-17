@@ -60,7 +60,7 @@ struct GeneralSettings: View {
             }
             HStack {
                 Text("WidgetKit limits how often widgets reload, so the widget always lags behind the menu bar.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 Button("Refresh widget now") { monitor.refreshWidgetNow() }
             }

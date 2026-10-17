@@ -55,8 +55,8 @@ and the widget share data through their app group container.
 
 Pushing a tag such as `v0.2.0` (`make tag VERSION=0.2.0`) runs the Release
 workflow, which builds a universal (arm64 + x86_64) binary with the version
-taken from the tag and attaches `Makstat-<version>-universal.zip` to the
-GitHub release.
+taken from the tag and attaches `Makstat-macos-universal.zip` (plus a sha256
+sidecar) and `Makstat-macos-universal.dmg` to the GitHub release.
 
 The app checks the latest GitHub release every six hours (and on launch),
 shows an "Update to x.y.z" link in the popover and a notification, and on
@@ -64,16 +64,16 @@ confirmation downloads the zip, verifies the code signature, swaps the bundle
 in place and relaunches. `Makstat --update` does the same without asking.
 
 Signature policy: if the running copy is signed by a team, the update must be
-signed by the same team, otherwise it is refused. Set these repository secrets
-to have CI produce Developer ID builds that satisfy that check (and are
-notarized):
+signed by the same team, otherwise it is refused. The workflow uses the same
+repository secrets as KarpelesLab/cterm to produce Developer ID signed and
+notarized builds that satisfy that check:
 
 | Secret | Content |
 |---|---|
-| `MACOS_CERTIFICATE_P12` | base64 of the "Developer ID Application" certificate exported as .p12 |
-| `MACOS_CERTIFICATE_PASSWORD` | password of that .p12 |
-| `APPLE_TEAM_ID` | team ID of the certificate (defaults to the one in `project.yml`) |
-| `APPLE_ID`, `APPLE_APP_PASSWORD` | Apple ID and app-specific password for `notarytool` |
+| `APPLE_CERTIFICATE_BASE64` | base64 of the "Developer ID Application" certificate exported as .p12 |
+| `APPLE_CERTIFICATE_PASSWORD` | password of that .p12 |
+| `APPLE_TEAM_ID` | team ID of the certificate |
+| `APPLE_ID`, `APPLE_ID_PASSWORD` | Apple ID and app-specific password for `notarytool` |
 
 Without the secrets, releases are ad-hoc signed; those updates install only
 on copies that are themselves ad-hoc signed.
