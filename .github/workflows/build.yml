@@ -1,0 +1,72 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+          sw_vers
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build (ad-hoc signed)
+        run: |
+          set -o pipefail
+          xcodebuild -project Makstat.xcodeproj -scheme Makstat -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
+            build 2>&1 | tee build.log | grep -E "error:|warning:.*makstat/|BUILD" || true
+          grep -q "BUILD SUCCEEDED" build.log
+
+      - name: Screenshots
+        run: |
+          APP=build/DerivedData/Build/Products/Release/Makstat.app
+          mkdir -p screenshots
+          # Rendered through AppKit's display cache: works without screen-recording permission.
+          "$APP/Contents/MacOS/Makstat" --screenshot screenshots
+          # Best effort: real window captured by the window server.
+          "$APP/Contents/MacOS/Makstat" --window > window.log 2>&1 &
+          sleep 8
+          ID=$(grep -o 'window: [0-9]*' window.log | awk '{print $2}' || true)
+          if [ -n "$ID" ]; then screencapture -x -l "$ID" screenshots/window-live.png || true; fi
+          screencapture -x screenshots/full-screen.png || true
+          pkill -x Makstat || true
+          ls -la screenshots
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots
+
+      - name: Package app
+        run: ditto -c -k --keepParent build/DerivedData/Build/Products/Release/Makstat.app Makstat.zip
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Makstat-app
+          path: Makstat.zip
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
